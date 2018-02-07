@@ -2,7 +2,9 @@
 
 const cp = require('child_process');
 const rimraf = require('rimraf');
+const {basename} = require('path');
 const {writeFileSync, mkdtempSync} = require('fs');
+const {homedir} = require('os');
 
 function seq(...fns) {
   return fns.reverse().reduce((prevFn, nextFn) =>
@@ -11,9 +13,11 @@ function seq(...fns) {
   );
 }
 
-const bc = ({tempDir, inputFilename}) => `${tempDir}/${inputFilename}.bc`;
-const s = ({tempDir, inputFilename}) => `${tempDir}/${inputFilename}.s`;
-const wast = ({tempDir, inputFilename}) => `${tempDir}/${inputFilename}.wast`;
+const cacheDir = homedir() + '/.holyc';
+
+const bc = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.bc`;
+const s = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.s`;
+const wast = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.wast`;
 const wasm = ({inputFilename}) => `${inputFilename}.wasm`;
 
 function clangppCompile(opts) {
@@ -35,7 +39,7 @@ function clangppCompile(opts) {
 function llvmStaticlyCompile(opts) {
   console.log('llvmStaticlyCompile', bc(opts));
 
-  cp.execFileSync('./llvmwasm-build/bin/llc', [
+  cp.execFileSync(cacheDir + '/llvmwasm-build/bin/llc', [
     bc(opts),
     '-o', s(opts)
   ]);
@@ -46,7 +50,7 @@ function llvmStaticlyCompile(opts) {
 function s2wasmCompile(opts) {
   console.log('s2wasmCompile', s(opts));
 
-  const out = cp.execFileSync('./binaryen-1.37.33/s2wasm', [
+  const out = cp.execFileSync(cacheDir + '/binaryen-1.37.33/s2wasm', [
     s(opts)
   ]);
 
@@ -58,7 +62,7 @@ function s2wasmCompile(opts) {
 function wast2wasmCompile(opts) {
   console.log('wast2wasmCompile', wast(opts));
 
-  cp.execFileSync('./wast2wasm/index.js', [
+  cp.execFileSync('./src/bin/wast2wasm/index.js', [
     wast(opts),
     wasm(opts),
   ]);

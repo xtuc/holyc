@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>title</title>
+  </head>
+  <body>
+
+    <script charset="utf-8">
+      function fetchAndInstantiate(url, importObject) {
+        return fetch(url).then(response =>
+          response.arrayBuffer()
+        ).then(bytes =>
+          WebAssembly.instantiate(bytes, importObject)
+        ).then(results =>
+          results.instance
+        );
+      }
+
+      const importObject = {
+        env: {
+          consolelog: console.log,
+        }
+      }
+
+      fetchAndInstantiate('/c-fibonacci/fib.cpp.wasm', importObject).then(instance => {
+        console.log(instance.exports.add(2));
+      });
+    </script>
+
+  </body>
+</html>

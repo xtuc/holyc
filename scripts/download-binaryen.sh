@@ -1,7 +1,10 @@
 #!/bin/sh
+
+cache_dir=$1
+
 download_url=https://github.com/WebAssembly/binaryen/releases/download/1.37.33/binaryen-1.37.33-x86_64-linux.tar.gz
-download_location=/tmp/binaryen-1.37.33.tar.gz
-bin_location=./binaryen-1.37.33
+download_location=$cache_dir/binaryen-1.37.33.tar.gz
+bin_location=$cache_dir/binaryen-1.37.33
 
 wget $download_url -O $download_location
 

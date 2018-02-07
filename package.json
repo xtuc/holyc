@@ -1,0 +1,34 @@
+{
+  "name": "holyc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "rimraf": "^2.6.2"
+  },
+  "devDependencies": {
+    "http-server": "^0.11.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "./scripts/postinstall.sh",
+    "serve-examples": "http-server -c-1 examples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/xtuc/holyc.git"
+  },
+  "author": "Sven Sauleau",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/xtuc/holyc/issues"
+  },
+  "homepage": "https://github.com/xtuc/holyc#readme",
+  "bin": {
+    "holyc++": "./src/bin/compilec++.js",
+    "holycgo": "./src/bin/compilecgo.js"
+  }
+}
