@@ -7,5 +7,5 @@ svn co http://llvm.org/svn/llvm-project/llgo/trunk llgo
 mkdir /tmp/llvm-go-build
 cd /tmp/llvm-go-build
 cmake /tmp/llvm-go -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly
-make -j$(nproc)
+make install prefix=/tmp/llvm-go-bin/ -j$(nproc)
 
