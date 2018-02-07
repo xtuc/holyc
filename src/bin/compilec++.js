@@ -6,6 +6,8 @@ const {basename} = require('path');
 const {writeFileSync, mkdtempSync} = require('fs');
 const {homedir} = require('os');
 
+const wast2wasm = require('./wast2wasm');
+
 function seq(...fns) {
   return fns.reverse().reduce((prevFn, nextFn) =>
     value => nextFn(prevFn(value)),
@@ -62,10 +64,7 @@ function s2wasmCompile(opts) {
 function wast2wasmCompile(opts) {
   console.log('wast2wasmCompile', wast(opts));
 
-  cp.execFileSync('./src/bin/wast2wasm/index.js', [
-    wast(opts),
-    wasm(opts),
-  ]);
+  wast2wasm(wast(opts), wasm(opts));
 
   return opts;
 }
