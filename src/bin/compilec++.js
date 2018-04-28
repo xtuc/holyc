@@ -6,6 +6,7 @@ const Multiprogress = require('multi-progress');
 const {basename, join} = require('path');
 const {writeFileSync, mkdtempSync} = require('fs');
 
+const includeDir = join(__dirname, "..", "..", "include");
 const binsDir = join(__dirname, "..", "..", ".bin");
 
 const multi = new Multiprogress(process.stdout);
@@ -38,9 +39,10 @@ function clangppCompile(opts) {
   cp.execFileSync(join(binsDir, 'clang'), [
     '-S',
     '-emit-llvm',
-    '--target=wasm64',
+    '--target=wasm32',
     '-c',
     '-Oz',
+    '-I', includeDir,
     opts.inputFilename,
     '-o', bc(opts)
   ]);
@@ -97,10 +99,15 @@ function compile(inputFilename) {
 
   const tempDir = mkdtempSync('holyc_');
 
-  run({
-    inputFilename,
-    tempDir
-  });
+  try {
+    run({
+      inputFilename,
+      tempDir
+    });
+  } catch (e) {
+    console.log("see temporary dir " + tempDir);
+    throw e;
+  }
 }
 
 compile(process.argv[2]);
