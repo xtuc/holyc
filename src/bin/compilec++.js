@@ -2,11 +2,13 @@
 
 const cp = require('child_process');
 const rimraf = require('rimraf');
-const {basename} = require('path');
+const Multiprogress = require('multi-progress');
+const {basename, join} = require('path');
 const {writeFileSync, mkdtempSync} = require('fs');
-const {homedir} = require('os');
 
-const wast2wasm = require('./wast2wasm');
+const binsDir = join(__dirname, "..", "..", ".bin");
+
+const multi = new Multiprogress(process.stdout);
 
 function seq(...fns) {
   return fns.reverse().reduce((prevFn, nextFn) =>
@@ -15,17 +17,25 @@ function seq(...fns) {
   );
 }
 
-const cacheDir = homedir() + '/.holyc';
-
 const bc = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.bc`;
 const s = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.s`;
-const wast = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.wast`;
 const wasm = ({inputFilename}) => `${inputFilename}.wasm`;
 
-function clangppCompile(opts) {
-  console.log('clangppCompile', opts.inputFilename);
+function newBar(msg, total = 100) {
+  const bar = multi.newBar('  ' + msg + ' [:bar] :percent', {
+    complete: '=',
+    incomplete: ' ',
+    width: 40,
+    total
+  });
 
-  cp.execFileSync('/usr/bin/clang++', [
+  return bar;
+}
+
+function clangppCompile(opts) {
+  const bar = newBar('clangppCompile');
+
+  cp.execFileSync(join(binsDir, 'clang'), [
     '-S',
     '-emit-llvm',
     '--target=wasm64',
@@ -35,44 +45,44 @@ function clangppCompile(opts) {
     '-o', bc(opts)
   ]);
 
+  bar.tick(100);
+
   return opts;
 }
 
 function llvmStaticlyCompile(opts) {
-  console.log('llvmStaticlyCompile', bc(opts));
+  const bar = newBar('llvmStaticlyCompile');
 
-  cp.execFileSync(cacheDir + '/llvmwasm-build/bin/llc', [
+  cp.execFileSync(join(binsDir, 'llc'), [
     bc(opts),
     '-o', s(opts)
   ]);
+
+  bar.tick(100);
 
   return opts;
 }
 
 function s2wasmCompile(opts) {
-  console.log('s2wasmCompile', s(opts));
+  const bar = newBar('s2wasmCompile');
 
-  const out = cp.execFileSync(cacheDir + '/binaryen-1.37.33/s2wasm', [
-    s(opts)
+  cp.execFileSync(join(binsDir, 's2wasm'), [
+    '--emit-binary',
+    s(opts),
+    '-o', wasm(opts)
   ]);
 
-  writeFileSync(wast(opts), out.toString("utf8"), {encoding: "utf8"});
-
-  return opts;
-}
-
-function wast2wasmCompile(opts) {
-  console.log('wast2wasmCompile', wast(opts));
-
-  wast2wasm(wast(opts), wasm(opts));
+  bar.tick(100);
 
   return opts;
 }
 
 function clean(opts) {
-  console.log('clean');
+  const bar = newBar('clean');
 
   rimraf.sync(opts.tempDir);
+
+  bar.tick(100);
 
   return opts;
 }
@@ -80,7 +90,6 @@ function clean(opts) {
 function compile(inputFilename) {
   const run = seq(
     clean,
-    wast2wasmCompile,
     s2wasmCompile,
     llvmStaticlyCompile,
     clangppCompile

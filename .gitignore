@@ -2,3 +2,5 @@ node_modules
 *.wasm
 llvmwasm-build
 binaryen-1.37.33
+build
+.bin
