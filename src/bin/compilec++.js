@@ -11,6 +11,23 @@ const binsDir = join(__dirname, "..", "..", ".bin");
 
 const multi = new Multiprogress(process.stdout);
 
+if (!String.prototype.padEnd) {
+  String.prototype.padEnd = function padEnd(targetLength,padString) {
+    targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+    padString = String((typeof padString !== 'undefined' ? padString : ' '));
+    if (this.length > targetLength) {
+      return String(this);
+    }
+    else {
+      targetLength = targetLength-this.length;
+      if (targetLength > padString.length) {
+        padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+      }
+      return String(this) + padString.slice(0,targetLength);
+    }
+  };
+}
+
 function seq(...fns) {
   return fns.reverse().reduce((prevFn, nextFn) =>
     value => nextFn(prevFn(value)),
@@ -23,6 +40,8 @@ const s = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.s
 const wasm = ({inputFilename}) => `${inputFilename}.wasm`;
 
 function newBar(msg, total = 100) {
+  msg = msg.padEnd(30);
+
   const bar = multi.newBar('  ' + msg + ' [:bar] :percent', {
     complete: '=',
     incomplete: ' ',
@@ -34,15 +53,18 @@ function newBar(msg, total = 100) {
 }
 
 function clangppCompile(opts) {
-  const bar = newBar('clangppCompile');
+  const bar = newBar('compile');
 
   cp.execFileSync(join(binsDir, 'clang'), [
     '-S',
     '-emit-llvm',
     '--target=wasm32',
+    '-fno-builtin',
+    '-nostdinc',
+    '-nostdlib',
     '-c',
-    '-Oz',
     '-I', includeDir,
+
     opts.inputFilename,
     '-o', bc(opts)
   ]);
@@ -53,7 +75,7 @@ function clangppCompile(opts) {
 }
 
 function llvmStaticlyCompile(opts) {
-  const bar = newBar('llvmStaticlyCompile');
+  const bar = newBar('statically compile');
 
   cp.execFileSync(join(binsDir, 'llc'), [
     bc(opts),
@@ -66,7 +88,7 @@ function llvmStaticlyCompile(opts) {
 }
 
 function s2wasmCompile(opts) {
-  const bar = newBar('s2wasmCompile');
+  const bar = newBar('finalize wasm');
 
   cp.execFileSync(join(binsDir, 's2wasm'), [
     '--emit-binary',
