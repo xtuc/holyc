@@ -4,7 +4,13 @@ const cp = require('child_process');
 const rimraf = require('rimraf');
 const Multiprogress = require('multi-progress');
 const {basename, join} = require('path');
-const {writeFileSync, mkdtempSync} = require('fs');
+const {writeFileSync, mkdtempSync, openSync} = require('fs');
+const program = require('commander');
+
+program
+  .option('--show-wast', 'Show wast output')
+  .option('--no-clean', 'Disable cleaning of intermediate formats')
+  .parse(process.argv);
 
 const includeDir = join(__dirname, "..", "..", "include");
 const binsDir = join(__dirname, "..", "..", ".bin");
@@ -33,6 +39,10 @@ function seq(...fns) {
     value => nextFn(prevFn(value)),
     value => value
   );
+}
+
+function noop(opts) {
+  return opts;
 }
 
 const bc = ({tempDir, inputFilename}) => `${tempDir}/${basename(inputFilename)}.bc`;
@@ -101,6 +111,24 @@ function s2wasmCompile(opts) {
   return opts;
 }
 
+function showWast(opts) {
+  const bar = newBar('show wast');
+
+  const stdio = [
+    0, // parent stdin
+    process.stdout,
+    0, // parent stderr
+  ];
+
+  const out = cp.execFileSync(join(binsDir, 's2wasm'), [
+    s(opts),
+  ], {stdio});
+
+  bar.tick(100);
+
+  return opts;
+}
+
 function clean(opts) {
   const bar = newBar('clean');
 
@@ -113,7 +141,9 @@ function clean(opts) {
 
 function compile(inputFilename) {
   const run = seq(
-    clean,
+    program.clean === false ? noop : clean,
+    program.showWast === true ? showWast : noop,
+
     s2wasmCompile,
     llvmStaticlyCompile,
     clangppCompile
@@ -121,15 +151,10 @@ function compile(inputFilename) {
 
   const tempDir = mkdtempSync('holyc_');
 
-  try {
-    run({
-      inputFilename,
-      tempDir
-    });
-  } catch (e) {
-    console.log("see temporary dir " + tempDir);
-    throw e;
-  }
+  run({
+    inputFilename,
+    tempDir
+  });
 }
 
 compile(process.argv[2]);

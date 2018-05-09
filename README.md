@@ -16,6 +16,13 @@ holyc++ path/to/something.cpp
 
 The `WASM` binary will then be available at `something.cpp.wasm`.
 
+### Options
+
+|name|description|
+|---|---|
+|`--show-wast`|Show wast output|
+|`--no-clean`|Disable cleaning of intermediate formats|
+
 ## FAQ
 
 ### How does it compare to Emscripten
