@@ -72,6 +72,7 @@ function clangppCompile(opts) {
     '-fno-builtin',
     '-nostdinc',
     '-nostdlib',
+    '-O3',
     '-c',
     '-I', includeDir,
 
