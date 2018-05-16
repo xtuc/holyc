@@ -31,6 +31,7 @@
   },
   "homepage": "https://github.com/xtuc/holyc#readme",
   "bin": {
+    "holyc": "./src/bin/compilec++.js",
     "holyc++": "./src/bin/compilec++.js",
     "holycgo": "./src/bin/compilecgo.js"
   }
