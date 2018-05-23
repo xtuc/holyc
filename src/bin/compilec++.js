@@ -142,7 +142,6 @@ function clean(opts) {
 
 function compile(inputFilename) {
   const run = seq(
-    program.clean === false ? noop : clean,
     program.showWast === true ? showWast : noop,
 
     s2wasmCompile,
@@ -152,10 +151,19 @@ function compile(inputFilename) {
 
   const tempDir = mkdtempSync('holyc_');
 
-  run({
-    inputFilename,
-    tempDir
-  });
+  try {
+    run({
+      inputFilename,
+      tempDir
+    });
+  } finally () {
+    if (program.clean === true) {
+      clean({
+        inputFilename,
+        tempDir
+      });
+    }
+  }
 }
 
 compile(process.argv[2]);
