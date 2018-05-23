@@ -1,4 +1,4 @@
-#!/usr/bin/node
+#!/usr/bin/env node
 
 const cp = require('child_process');
 const rimraf = require('rimraf');
