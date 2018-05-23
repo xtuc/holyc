@@ -156,7 +156,7 @@ function compile(inputFilename) {
       inputFilename,
       tempDir
     });
-  } finally () {
+  } finally {
     if (program.clean === true) {
       clean({
         inputFilename,
