@@ -7,6 +7,8 @@
     "test": "test"
   },
   "dependencies": {
+    "@webassemblyjs/ast": "^1.5.9",
+    "@webassemblyjs/wasm-edit": "^1.5.9",
     "commander": "^2.15.1",
     "mkdirp": "^0.5.1",
     "multi-progress": "^2.0.0",
