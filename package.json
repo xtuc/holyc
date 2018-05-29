@@ -1,6 +1,6 @@
 {
   "name": "holyc",
-  "version": "0.0.15",
+  "version": "0.0.16",
   "description": "An easy to use C++ to WASM compiler (Highly-experimental)",
   "main": "index.js",
   "directories": {
